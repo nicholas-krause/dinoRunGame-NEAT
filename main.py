@@ -2,7 +2,7 @@
 The classic game of flappy bird. Make with python
 and pygame. Features pixel perfect collision using masks :o
 
-Date Modified:  Apr 19
+Date Modified:  Apr 30 2023
 Author: Nicholas Krause
 """
 
@@ -133,7 +133,7 @@ def main():
         for index, bird in enumerate(birds):
             bird.move()
             if bird.x + bird.image.get_width() < -100:
-                bird.pop(index)
+                birds.pop(index)
 
         for index, cactus in enumerate(cacti):
             cactus.move()
