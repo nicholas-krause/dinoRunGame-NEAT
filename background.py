@@ -5,7 +5,7 @@ BASE_IMAGE = pygame.image.load(os.path.join("assets/Sprites", "Ground.png"))
 
 
 class Base:
-    BASE_VEL = 10
+    BASE_VEL = 15
     WIDTH = BASE_IMAGE.get_width()
     IMAGE = BASE_IMAGE
 
@@ -14,7 +14,7 @@ class Base:
         self.left = 0  # x-left
         self.right = self.WIDTH  # x-right
         self.vel = self.BASE_VEL
-        self.multiplier = 1
+        self.multiplier = 1.05
 
     def move(self):
         self.left -= self.vel
@@ -30,6 +30,5 @@ class Base:
         win.blit(self.IMAGE, (self.right, self.y))
 
     def accelerate(self):
-        self.multiplier += 0.05
-        self.vel = self.BASE_VEL*self.multiplier
+        self.vel *= self.multiplier
 

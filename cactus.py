@@ -8,11 +8,11 @@ LARGE_CACTUS_IMAGES = [pygame.image.load(os.path.join("assets/Sprites", "Cactus_
 
 
 class Cactus:
-    BASE_VEL = 10
+    BASE_VEL = 15
     LARGE_IMAGES = LARGE_CACTUS_IMAGES
     SMALL_IMAGES = SMALL_CACTUS_IMAGES
 
-    def __init__(self, arguments):
+    def __init__(self, arguments, current_multiplier):
         distance, size, variant = arguments
         self.x = distance  # might need to adjust this should be WIDTH + random_amount * 400
         self.y = GROUND
@@ -20,6 +20,7 @@ class Cactus:
         self.size = size
         self.variant = variant
         self.image = SMALL_CACTUS_IMAGES[0]  # default image
+        self.multiplier = current_multiplier
 
     def move(self):
         self.x -= self.vel
@@ -41,3 +42,6 @@ class Cactus:
         offset = (self.x - dino.x, self.y - round(dino.y))  # Needs tweaking
 
         return True if dino_mask.overlap(mask, offset) else False
+
+    def accelerate(self):
+        self.vel *= self.multiplier

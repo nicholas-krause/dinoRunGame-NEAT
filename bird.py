@@ -5,19 +5,20 @@ import os
 WIN_WIDTH = 1500
 WIN_HEIGHT = 400
 FLOOR = 280  # For Base image
-GROUND = 365 # For Dinosaur sprite
+GROUND = 365  # For Dinosaur sprite
 BIRD_IMAGES = [pygame.image.load(os.path.join("assets/Sprites", "Bird_01.png")), pygame.image.load(os.path.join("assets/Sprites", "Bird_02.png"))]
 class Bird:
     IMAGES = BIRD_IMAGES
     ANIMATION_TIME = 5
     BASE_VEL = 15
 
-    def __init__(self, y):
+    def __init__(self, y, current_multiplier):
         self.x = WIN_WIDTH + 200
         self.y = y
         self.vel = self.BASE_VEL
         self.image_count = 0
         self.image = self.IMAGES[0]
+        self.multiplier = current_multiplier
 
     def move(self):
         self.x -= self.vel
@@ -42,3 +43,6 @@ class Bird:
         offset = (self.x - dino.x, self.y - round(dino.y))  # Needs tweaking
 
         return True if dino_mask.overlap(mask, offset) else False
+
+    def accelerate(self):
+        self.vel *= self.multiplier

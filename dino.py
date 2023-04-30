@@ -21,10 +21,11 @@ class Dinosaur:
         self.image = self.IMAGES[0]
 
     def jump(self):
-        self.vel_y = -6.3
-        self.tick_count = 0
-        self.height = self.y
-        self.is_jumping = True
+        if self.y == GROUND:
+            self.vel_y = -5.7
+            self.tick_count = 0
+            self.height = self.y
+            self.is_jumping = True
 
     def move(self):
         self.tick_count += 1
@@ -54,7 +55,6 @@ class Dinosaur:
             self.image = self.IMAGES[0]
             self.image_count = 0
         else:
-            print("her")
             if self.image_count < self.ANIMATION_TIME:
                 self.image = self.IMAGES[1]
             elif self.image_count < self.ANIMATION_TIME*2:
