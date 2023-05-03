@@ -175,21 +175,34 @@ def evaluate_genomes(genomes, configuration):
                 cacti_distances.append(abs(cactus.x - 200))
             min_cactus_index = cacti_distances.index(min(cacti_distances))
 
+        closest_bird = WIN_WIDTH
         if len(birds) > 0:
             for bird in birds:
                 bird_distances.append(abs(bird.x - 200))
             min_bird_index = bird_distances.index(min(bird_distances))
+            closest_bird = birds[min_bird_index].x
 
         for x, dino in enumerate(dinos):  # give each bird a fitness of 0.1 for each frame it stays alive
             genome_list[x].fitness += 0.1
             dino.move()
 
             # Just works out whether to jump or not based on cactus proximity, need to add in birds
-            output = nets[dinos.index(dino)].activate((dino.x, abs(dino.x - cacti[min_cactus_index].x)))
+            output = nets[dinos.index(dino)].activate((dino.x,
+                                                       abs(dino.x - cacti[min_cactus_index].x),
+                                                       abs(dino.x - closest_bird)))
             # abs(dino.x - birds[min_bird_index].x)) ? birds dont always exist, need a try catch?
 
+
+            # outputs could be jump, duck or stand
+            # between 1.0 and 0.5 -> jump
+            # between 0.5 and 0 -> stand
+            # between 0 and - 0.25 -> duck
             if output[0] > 0.5:  # we use a tanh activation function so result will be between -1 and 1. if over 0.5 jump
                 dino.jump()
+            elif 0.5 > output[0] < 0.25:
+                dino.stand()
+            elif 0.25 > output[0] < -1:
+                dino.duck()
 
         base.move()
         for index, bird in enumerate(birds):
@@ -224,6 +237,7 @@ def evaluate_genomes(genomes, configuration):
 
         draw_dino_window(win, dinos, base, score, birds, cacti, min_cactus_index, min_cactus_index)
         cacti_distances = []
+        bird_distances = []
 
 
 def run(configuration_file):

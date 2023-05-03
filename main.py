@@ -127,6 +127,9 @@ def main():
                     dino.jump()
                 if event.key == pygame.K_DOWN:
                     dino.duck()
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_DOWN:
+                    dino.stand()
 
         dino.move()
         base.move()
