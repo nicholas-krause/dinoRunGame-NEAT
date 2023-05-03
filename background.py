@@ -14,7 +14,6 @@ class Base:
         self.left = 0  # x-left
         self.right = self.WIDTH  # x-right
         self.vel = self.BASE_VEL
-        self.multiplier = 1.05
 
     def move(self):
         self.left -= self.vel
@@ -29,6 +28,6 @@ class Base:
         win.blit(self.IMAGE, (self.left, self.y))
         win.blit(self.IMAGE, (self.right, self.y))
 
-    def accelerate(self):
-        self.vel *= self.multiplier
+    def accelerate(self, multiplier):
+        self.vel = self.BASE_VEL * multiplier
 

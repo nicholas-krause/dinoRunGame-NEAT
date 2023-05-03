@@ -72,12 +72,12 @@ def generate_bird_height(minimum, maximum):
     return random.randint(minimum, maximum)
 
 
-# def accelerate_all(base, birds, cacti):
-#     base.accelerate()
-#     for bird in birds:
-#         bird.accelerate()
-#     for cactus in cacti:
-#         cactus.accelerate()
+def accelerate_all(base, birds, cacti, multiplier):
+    base.accelerate(multiplier)
+    for bird in birds:
+        bird.accelerate(multiplier)
+    for cactus in cacti:
+        cactus.accelerate(multiplier)
 
 
 def main():
@@ -86,7 +86,7 @@ def main():
     velocity = 10
     blocks_travelled = 0
     tick = 31
-    level_up = 150
+    level_up = 250
     score_increment = 1
     multiplier = 1
 
@@ -94,7 +94,7 @@ def main():
     base = Base(FLOOR)
     clock = pygame.time.Clock()
     birds = []
-    cacti = [Cactus(generate_cactus_variant(), 1.05)]
+    cacti = [Cactus(generate_cactus_variant())]
     win = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 
     run = True
@@ -106,17 +106,21 @@ def main():
 
         if blocks_travelled > WIN_WIDTH/2:
             blocks_travelled = 0
-            cacti.append(Cactus(generate_cactus_variant(), multiplier))
+            new_cactus = Cactus(generate_cactus_variant())
+            new_cactus.accelerate(multiplier)
+            print("Cactus accel:" + str(new_cactus.vel))
+            print("Base accel:" + str(base.vel))
+            cacti.append(new_cactus)
 
         # might need to scale this down with acceleration
         if int(score) % level_up == 0:
             score += 1
-            velocity *= 1
-            score_increment *= 1
-            multiplier *= 1
+            velocity *= 1.04
+            score_increment *= 1.04
+            multiplier *= 1.04
             # add a bird
-            birds.append(Bird(generate_bird_height(BIRD_HEIGHT, FLOOR - BIRD_HEIGHT), multiplier))
-            # accelerate_all(base, birds, cacti)
+            birds.append(Bird(generate_bird_height(BIRD_HEIGHT, GROUND - BIRD_HEIGHT)))
+            accelerate_all(base, birds, cacti, multiplier)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

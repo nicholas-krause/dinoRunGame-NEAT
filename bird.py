@@ -12,13 +12,12 @@ class Bird:
     ANIMATION_TIME = 5
     BASE_VEL = 15
 
-    def __init__(self, y, current_multiplier):
+    def __init__(self, y):
         self.x = WIN_WIDTH + 200
         self.y = y
         self.vel = self.BASE_VEL
         self.image_count = 0
         self.image = self.IMAGES[0]
-        self.multiplier = current_multiplier
 
     def move(self):
         self.x -= self.vel
@@ -44,5 +43,5 @@ class Bird:
 
         return True if dino_mask.overlap(mask, offset) else False
 
-    def accelerate(self):
-        self.vel *= self.multiplier
+    def accelerate(self, multiplier):
+        self.vel *= multiplier
