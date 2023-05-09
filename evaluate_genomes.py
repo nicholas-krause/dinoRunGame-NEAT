@@ -23,7 +23,7 @@ pygame.font.init()  # init font
 WIN_WIDTH = 1500
 WIN_HEIGHT = 400
 FLOOR = 280  # For Base image
-GROUND = 365 # For Dinosaur sprite
+GROUND = 365  # For Dinosaur sprite
 BIRD_HEIGHT = 96
 FONT_COLOUR = (90, 90, 90)
 STAT_FONT = pygame.font.Font(os.path.join("fonts/PublicPixel.ttf"), 18)
@@ -44,7 +44,7 @@ def draw_dino_window(win, dinos, base, score, birds, cacti, min_cactus_index, mi
         if DRAW_LINES:
             try:
                 pygame.draw.line(win, (255, 0, 0),
-                                 (dino.x + dino.image.get_width()/2, dino.y - dino.image.get_height()/2),
+                                 (dino.x + dino.image.get_width() / 2, dino.y - dino.image.get_height() / 2),
                                  (cacti[min_cactus_index].x,
                                   cacti[min_cactus_index].y - cacti[min_cactus_index].image.get_height()), 5)
                 pygame.draw.line(win, (0, 0, 255),
@@ -73,13 +73,12 @@ def draw_dino_window(win, dinos, base, score, birds, cacti, min_cactus_index, mi
     else:
         extra = ""
 
-
     # score
     score_label = STAT_FONT.render("Score: " + extra + str(score), True, FONT_COLOUR)
     win.blit(score_label, (WIN_WIDTH - score_label.get_width() - 15, 10))
 
     # generations
-    gen_label = STAT_FONT.render("Gens: " + str(gen-1), True, FONT_COLOUR)
+    gen_label = STAT_FONT.render("Gens: " + str(gen - 1), True, FONT_COLOUR)
     win.blit(gen_label, (WIN_WIDTH - gen_label.get_width() - 15, 26))
 
     # dinos
@@ -106,7 +105,6 @@ def accelerate_all(base, birds, cacti, multiplier):
         bird.accelerate(multiplier)
     for cactus in cacti:
         cactus.accelerate(multiplier)
-
 
 
 def evaluate_genomes(genomes, configuration):
@@ -149,7 +147,7 @@ def evaluate_genomes(genomes, configuration):
         # variable for game velocity, use this to convert time to how much distance has been travelled?
         blocks_travelled += velocity
 
-        if blocks_travelled > WIN_WIDTH/2:
+        if blocks_travelled > WIN_WIDTH / 2:
             blocks_travelled = 0
             new_cactus = Cactus(generate_cactus_variant())
             new_cactus.accelerate(multiplier)
@@ -162,7 +160,7 @@ def evaluate_genomes(genomes, configuration):
             score_increment *= 1.04
             multiplier *= 1.04
             # add a bird
-            birds.append(Bird(generate_bird_height(BIRD_HEIGHT, FLOOR - BIRD_HEIGHT)))
+            birds.append(Bird(generate_bird_height(BIRD_HEIGHT, FLOOR)))
             accelerate_all(base, birds, cacti, multiplier)
 
         for event in pygame.event.get():
@@ -177,12 +175,14 @@ def evaluate_genomes(genomes, configuration):
                 cacti_distances.append(abs(cactus.x - 200))
             min_cactus_index = cacti_distances.index(min(cacti_distances))
 
-        closest_bird = WIN_WIDTH
+        closest_bird_x = WIN_WIDTH # make this a bird object?
+        closest_bird_y = 0
         if len(birds) > 0:
             for bird in birds:
                 bird_distances.append(abs(bird.x - 200))
             min_bird_index = bird_distances.index(min(bird_distances))
-            closest_bird = birds[min_bird_index].x
+            closest_bird_x = birds[min_bird_index].x
+            closest_bird_y = birds[min_bird_index].y
 
         for x, dino in enumerate(dinos):  # give each bird a fitness of 0.1 for each frame it stays alive
             genome_list[x].fitness += 0.1
@@ -190,16 +190,17 @@ def evaluate_genomes(genomes, configuration):
 
             # Just works out whether to jump or not based on cactus proximity, need to add in birds
             output = nets[dinos.index(dino)].activate((dino.x,
+                                                       dino.y,
                                                        abs(dino.x - cacti[min_cactus_index].x),
-                                                       abs(dino.x - closest_bird)))
+                                                       abs(dino.x - closest_bird_x),
+                                                       abs(dino.y - closest_bird_y)))
             # abs(dino.x - birds[min_bird_index].x)) ? birds dont always exist, need a try catch?
 
-
-            # outputs could be jump, duck or stand
+            # outputs could jump, duck or stand
             # between 1.0 and 0.5 -> jump
             # between 0.5 and 0 -> stand
             # between 0 and - 0.25 -> duck
-            if output[0] > 0.5:  # we use a tanh activation function so result will be between -1 and 1. if over 0.5 jump
+            if output[0] > 0.5:
                 dino.jump()
             elif 0.5 > output[0] < 0.25:
                 dino.stand()
@@ -241,6 +242,10 @@ def evaluate_genomes(genomes, configuration):
         cacti_distances = []
         bird_distances = []
 
+        if score > 5000:
+            # At this point it would be good to save the species
+            pickle.dump(nets[0], open("fittest.pickle", "wb"))
+
 
 def run(configuration_file):
     config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,
@@ -249,6 +254,8 @@ def run(configuration_file):
 
     # Create the population, which is the top-level object for a NEAT run.
     pop = neat.Population(config)
+    # Add reporter to show stats of each generation
+    pop.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     pop.add_reporter(stats)
 
@@ -258,6 +265,7 @@ def run(configuration_file):
 
     # show final stats
     print('\nBest genome:\n{!s}'.format(winner))
+
 
 if __name__ == '__main__':
     # Determine path to configuration file. This path manipulation is
