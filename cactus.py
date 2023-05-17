@@ -43,4 +43,4 @@ class Cactus:
         return True if dino_mask.overlap(mask, offset) else False
 
     def accelerate(self, multiplier):
-        self.vel *= multiplier
+        self.vel = self.BASE_VEL * multiplier

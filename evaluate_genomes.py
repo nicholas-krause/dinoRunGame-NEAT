@@ -9,14 +9,15 @@ Author: Nicholas Krause
 import pygame
 import random
 import os
-from cactus import Cactus
-from dino import Dinosaur
-from bird import Bird
-from background import Base
 import time
 import neat
 import visualize
 import pickle
+
+from cactus import Cactus
+from dino import Dinosaur
+from bird import Bird
+from background import Base
 
 pygame.font.init()  # init font
 
@@ -205,6 +206,7 @@ def evaluate_genomes(genomes, configuration):
             elif 0.5 > output[0] < 0.25:
                 dino.stand()
             elif 0.25 > output[0] < -1:
+                genome_list[x].fitness += 0.05
                 dino.duck()
 
         base.move()
