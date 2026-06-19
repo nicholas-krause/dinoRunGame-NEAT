@@ -25,9 +25,10 @@ class SimulationParams:
     max_generations: int = 50
     tick_rate: int = 31
     start_velocity: float = 10.0
-    level_up_interval: int = 150
+    accel_per_second: float = 0.35
+    max_velocity: float = 22.0
+    bird_spawn_interval: int = 300
     score_increment: float = 1.0
-    speed_scale: float = 1.04
     birds_enabled: bool = True
     draw_lines: bool = True
     seed: int | None = None
@@ -48,7 +49,7 @@ class Simulation:
         self.generation = 0
         self.finished = False
         self.generation_history = []
-        self._last_level_bucket = 0
+        self._last_bird_bucket = 0
         self._start_generation()
 
     def _generate_cactus_variant(self):
@@ -85,8 +86,7 @@ class Simulation:
         self.velocity = self.params.start_velocity
         self.blocks_travelled = 0.0
         self.score_increment = self.params.score_increment
-        self.multiplier = 1.0
-        self._last_level_bucket = 0
+        self._last_bird_bucket = 0
 
         self.base = Base(FLOOR)
         self.birds = []
@@ -214,23 +214,30 @@ class Simulation:
             self.genomes = [self.genomes[i] for i in alive]
 
     def _step_world(self):
+        elapsed_seconds = self.frame_count / max(self.params.tick_rate, 1)
+        self.velocity = min(
+            self.params.start_velocity + self.params.accel_per_second * elapsed_seconds,
+            self.params.max_velocity,
+        )
+        multiplier = self.velocity / max(self.params.start_velocity, 0.001)
+        self.base.accelerate(multiplier)
+        for bird in self.birds:
+            bird.accelerate(multiplier)
+        for cactus in self.cacti:
+            cactus.accelerate(multiplier)
+
         self.blocks_travelled += self.velocity
         if self.blocks_travelled > WIN_WIDTH / 2:
             self.blocks_travelled = 0
             new_cactus = Cactus(self._generate_cactus_variant())
-            new_cactus.accelerate(self.multiplier)
+            new_cactus.accelerate(multiplier)
             self.cacti.append(new_cactus)
 
-        level_bucket = int(self.score) // self.params.level_up_interval
-        if level_bucket > self._last_level_bucket:
-            self._last_level_bucket = level_bucket
-            self.score += 1
-            self.velocity *= self.params.speed_scale
-            self.score_increment *= self.params.speed_scale
-            self.multiplier *= self.params.speed_scale
-            if self.params.birds_enabled:
+        bird_bucket = int(self.score) // max(self.params.bird_spawn_interval, 1)
+        if self.params.birds_enabled and bird_bucket > self._last_bird_bucket:
+            self._last_bird_bucket = bird_bucket
+            if self.velocity >= self.params.start_velocity + 1.0:
                 self.birds.append(Bird(self._generate_bird_height()))
-            self._accelerate_all()
 
         self.base.move()
         for bird in self.birds:
