@@ -1,17 +1,12 @@
-import pygame
-import os
-
-GROUND = 365  # For Dinosaur sprite
-DINO_IMAGES = [pygame.image.load(os.path.join("assets/Sprites", "Dino_Idle.png")),
-               pygame.image.load(os.path.join("assets/Sprites", "Dino_Run01.png")),
-               pygame.image.load(os.path.join("assets/Sprites", "Dino_Run02.png")),
-               pygame.image.load(os.path.join("assets/Sprites", "Dino_Duck01.png")),
-               pygame.image.load(os.path.join("assets/Sprites", "Dino_Duck02.png"))]
+GROUND = 365  # For Dinosaur sprite baseline
 
 
 class Dinosaur:
-    IMAGES = DINO_IMAGES
-    ANIMATION_TIME = 3  # COULD BE 2 OR 3
+    # Approximate hitboxes for headless simulation/canvas rendering.
+    STAND_WIDTH = 44
+    STAND_HEIGHT = 47
+    DUCK_WIDTH = 59
+    DUCK_HEIGHT = 30
 
     def __init__(self, x, y):
         self.x = x
@@ -19,10 +14,8 @@ class Dinosaur:
         self.vel_y = 0
         self.tick_count = 0
         self.height = self.y
-        self.image_count = 0
         self.is_jumping = False
         self.is_ducking = False
-        self.image = self.IMAGES[0]
 
     def jump(self):
         if self.y == GROUND:
@@ -59,33 +52,21 @@ class Dinosaur:
         self.vel_y = 100
         self.is_ducking = False
 
-    def draw(self, win):
-        self.image_count += 1
+    @property
+    def width(self):
+        return self.DUCK_WIDTH if self.is_ducking and not self.is_jumping else self.STAND_WIDTH
 
-        if self.is_ducking and not self.is_jumping:
-            if self.image_count < self.ANIMATION_TIME:
-                self.image = self.IMAGES[3]
-            elif self.image_count < self.ANIMATION_TIME * 2:
-                self.image = self.IMAGES[4]
-            elif self.image_count < self.ANIMATION_TIME * 3:
-                self.image = self.IMAGES[3]
-                self.image_count = 0
-        else:
-            if self.y < GROUND:
-                self.image = self.IMAGES[0]
-                self.image_count = 0
-            else:
-                if self.image_count < self.ANIMATION_TIME:
-                    self.image = self.IMAGES[1]
-                elif self.image_count < self.ANIMATION_TIME*2:
-                    self.image = self.IMAGES[2]
-                elif self.image_count < self.ANIMATION_TIME*3:
-                    self.image = self.IMAGES[1]
-                    self.image_count = 0
+    @property
+    def height_px(self):
+        return self.DUCK_HEIGHT if self.is_ducking and not self.is_jumping else self.STAND_HEIGHT
 
-        rect = self.image.get_rect(center=self.image.get_rect(bottomleft=(self.x, self.y)).center)
-        win.blit(self.image, rect)
-
-
-    def get_mask(self):
-        return pygame.mask.from_surface(self.image)
+    def bounds(self):
+        """
+        Return AABB bounds as (left, top, right, bottom).
+        x/y are treated as sprite bottom-left anchor.
+        """
+        left = self.x
+        bottom = self.y
+        right = left + self.width
+        top = bottom - self.height_px
+        return left, top, right, bottom

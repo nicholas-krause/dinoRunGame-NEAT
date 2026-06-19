@@ -1,16 +1,18 @@
-import pygame
-import os
-
-
-GROUND = 365 # For Sprite height
-SMALL_CACTUS_IMAGES = [pygame.image.load(os.path.join("assets/Sprites", "Cactus_Small_Single.png")), pygame.image.load(os.path.join("assets/Sprites", "Cactus_Small_Double.png")), pygame.image.load(os.path.join("assets/Sprites", "Cactus_Small_Triple.png"))]
-LARGE_CACTUS_IMAGES = [pygame.image.load(os.path.join("assets/Sprites", "Cactus_Large_Single.png")), pygame.image.load(os.path.join("assets/Sprites", "Cactus_Large_Double.png")), pygame.image.load(os.path.join("assets/Sprites", "Cactus_Large_Triple.png"))]
+GROUND = 365  # For Sprite height
 
 
 class Cactus:
     BASE_VEL = 15
-    LARGE_IMAGES = LARGE_CACTUS_IMAGES
-    SMALL_IMAGES = SMALL_CACTUS_IMAGES
+    SMALL_HITBOXES = {
+        0: (17, 35),  # single
+        1: (34, 35),  # double
+        2: (51, 35),  # triple
+    }
+    LARGE_HITBOXES = {
+        0: (25, 50),  # single
+        1: (50, 50),  # double
+        2: (75, 50),  # triple
+    }
 
     def __init__(self, arguments):
         distance, size, variant = arguments
@@ -19,28 +21,28 @@ class Cactus:
         self.vel = self.BASE_VEL
         self.size = size
         self.variant = variant
-        self.image = SMALL_CACTUS_IMAGES[0]  # default image
 
     def move(self):
         self.x -= self.vel
 
-    def draw(self, win):
+    @property
+    def width(self):
         if self.size == "small":
-            images = self.SMALL_IMAGES
-            self.image = images[self.variant]
-        else:
-            images = self.LARGE_IMAGES
-            self.image = images[self.variant]
+            return self.SMALL_HITBOXES[self.variant][0]
+        return self.LARGE_HITBOXES[self.variant][0]
 
-        rect = self.image.get_rect(center=self.image.get_rect(bottomleft=(self.x, self.y)).center)
-        win.blit(self.image, rect)
+    @property
+    def height_px(self):
+        if self.size == "small":
+            return self.SMALL_HITBOXES[self.variant][1]
+        return self.LARGE_HITBOXES[self.variant][1]
 
-    def collide(self, dino):
-        dino_mask = dino.get_mask()
-        mask = pygame.mask.from_surface(self.image)
-        offset = (self.x - dino.x, self.y - round(dino.y))  # Needs tweaking
-
-        return True if dino_mask.overlap(mask, offset) else False
+    def bounds(self):
+        left = self.x
+        bottom = self.y
+        right = left + self.width
+        top = bottom - self.height_px
+        return left, top, right, bottom
 
     def accelerate(self, multiplier):
         self.vel = self.BASE_VEL * multiplier
