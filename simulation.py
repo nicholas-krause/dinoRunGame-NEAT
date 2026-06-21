@@ -93,8 +93,14 @@ class Simulation:
         self.cacti = [Cactus(self._generate_cactus_variant())]
 
     def _end_generation(self):
-        best = max(self.genomes, key=lambda g: g.fitness) if self.genomes else None
-        avg = sum(g.fitness for g in self.genomes) / len(self.genomes) if self.genomes else 0.0
+        # self.genomes is the *survivor* list that _handle_collisions empties as
+        # dinos die, so by the time we get here it's [].  The original genomes
+        # (with their accumulated fitness from this generation) still live on
+        # self.population.population - reproduce() below is what swaps that out -
+        # so compute the gen stats from there.
+        gen_genomes = list(self.population.population.values())
+        best = max(gen_genomes, key=lambda g: g.fitness) if gen_genomes else None
+        avg = sum(g.fitness for g in gen_genomes) / len(gen_genomes) if gen_genomes else 0.0
         best_fit = best.fitness if best else 0.0
         species_count = len(self.population.species.species)
         self.generation_history.append(
@@ -185,13 +191,16 @@ class Simulation:
                     abs(dino.y - closest_bird_y),
                 )
             )
-            if output[0] > 0.5:
+            # Use the network's 3 outputs (matches num_outputs in configuration_FF.txt)
+            # as a one-hot action selector: argmax picks jump / stand / duck.
+            action = max(range(3), key=lambda i: output[i])
+            if action == 0:
                 dino.jump()
-            elif 0.5 > output[0] < 0.25:
+            elif action == 1:
                 dino.stand()
-            elif 0.25 > output[0] < -1:
-                self.genomes[idx].fitness += 0.05
+            else:
                 dino.duck()
+                self.genomes[idx].fitness += 0.05
 
     def _handle_collisions(self):
         alive = list(range(len(self.dinos)))
